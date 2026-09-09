@@ -42,7 +42,15 @@ if not os.getenv('KRX_ID') or not os.getenv('KRX_PW'):
     except Exception:
         pass
 
-from pykrx import stock
+# pykrx 안전 로딩 (setuptools/pkg_resources 부재 시에도 앱 크래시 방지)
+try:
+    from pykrx import stock
+    HAS_PYKRX = True
+except Exception as e:
+    stock = None
+    HAS_PYKRX = False
+    print(f"pykrx 로딩 건너뜀 (yfinance 폴백 가동): {e}")
+
 import yfinance as yf
 
 # 주요 미국 및 글로벌 주식 프리셋 (한글명 + 티커)
@@ -206,17 +214,18 @@ def fetch_korean_per_series(code, start_date, end_date):
     start_str = start_date.strftime('%Y%m%d')
     end_str = end_date.strftime('%Y%m%d')
 
-    try:
-        df = stock.get_market_fundamental_by_date(start_str, end_str, code)
-        if df is not None and not df.empty and 'PER' in df.columns:
-            # 0 또는 음수 PER 제거 (미산출일 또는 적자)
-            per_series = df['PER'].copy()
-            per_series = per_series[per_series > 0]
-            if not per_series.empty:
-                per_series.index = pd.to_datetime(per_series.index).normalize()
-                return per_series
-    except Exception as e:
-        print(f"pykrx 수집 실패 ({code}): {e}, yfinance 폴백 시도")
+    if HAS_PYKRX and stock is not None:
+        try:
+            df = stock.get_market_fundamental_by_date(start_str, end_str, code)
+            if df is not None and not df.empty and 'PER' in df.columns:
+                # 0 또는 음수 PER 제거 (미산출일 또는 적자)
+                per_series = df['PER'].copy()
+                per_series = per_series[per_series > 0]
+                if not per_series.empty:
+                    per_series.index = pd.to_datetime(per_series.index).normalize()
+                    return per_series
+        except Exception as e:
+            print(f"pykrx 수집 실패 ({code}): {e}, yfinance 폴백 시도")
 
     # 폴백: yfinance
     yf_symbol = f"{code}.KS"
