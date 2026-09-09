@@ -44,7 +44,6 @@ if not os.getenv('KRX_ID') or not os.getenv('KRX_PW'):
 
 from pykrx import stock
 import yfinance as yf
-import FinanceDataReader as fdr
 
 # 주요 미국 및 글로벌 주식 프리셋 (한글명 + 티커)
 MAJOR_US_STOCKS = [
@@ -98,8 +97,9 @@ def load_krx_data(cache_file="krx_cache.csv"):
             except Exception:
                 pass
 
-    # FDR을 통한 온라인 수집 시도
+    # FDR이 환경에 설치되어 있는 경우에 한해 온라인 수집 시도
     try:
+        import FinanceDataReader as fdr
         df = fdr.StockListing('KRX')
         df_cleaned = df[['Code', 'Name', 'Market']].copy()
         df_cleaned.to_csv(full_cache_path, index=False, encoding='utf-8-sig')
