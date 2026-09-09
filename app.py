@@ -216,7 +216,8 @@ if query_button or st.session_state.get("executed", False):
             # ----------------------------------------------------
             # 1. 상단 전문가 요약 KPI 카드 (5개 종목 핵심 지표)
             # ----------------------------------------------------
-            st.markdown("<h3 style='font-size: 1.15rem; font-weight: 700; color: #F8FAFC; margin-bottom: 12px;'>📌 핵심 밸류에이션 요약 (현재 PER 및 기간 변화)</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='font-size: 1.15rem; font-weight: 700; color: #F8FAFC; margin-bottom: 4px;'>📌 핵심 밸류에이션 요약 (현재 PER 및 기간 변화)</h3>", unsafe_allow_html=True)
+            st.caption("※ 한국 및 미국 전 종목 모두 직전 4개 분기 실적 합산(TTM: Trailing Twelve Months) 기준의 분기 롤링 PER로 동일하게 산출되어 왜곡 없이 1:1 비교됩니다.")
             
             card_cols = st.columns(len(summary_df))
             for i, (_, row) in enumerate(summary_df.iterrows()):
@@ -233,7 +234,7 @@ if query_button or st.session_state.get("executed", False):
                     st.markdown(f"""
                     <div class="metric-card">
                         <div class="metric-title" title="{name}">{name}</div>
-                        <div class="metric-val">{cur_pe:.2f} <span style="font-size: 0.85rem; font-weight: 500; color: #94A3B8;">배 (Trailing)</span></div>
+                        <div class="metric-val">{cur_pe:.2f} <span style="font-size: 0.85rem; font-weight: 500; color: #94A3B8;">배 (Trailing TTM)</span></div>
                         <div class="metric-sub" style="margin-top: 6px;">
                             변동: <span class="{badge_class}">{sign}{chg_pct:.2f}%</span> | 평균: <span style="color: #CBD5E1;">{avg_pe:.2f}배</span><br/>
                             <span style="color: #94A3B8; font-weight: 600;">Fwd(12MF):</span> <span style="color: #34D399; font-weight: 700;">{fwd_text}</span>
@@ -425,7 +426,7 @@ if query_button or st.session_state.get("executed", False):
                         y=[name],
                         mode='markers',
                         marker=dict(size=14, color=c, line=dict(width=2, color="#FFFFFF")),
-                        name='현재 PER (Trailing)' if i == 0 else None,
+                        name='현재 PER (Trailing TTM)' if i == 0 else None,
                         showlegend=(i == 0),
                         hovertemplate=f'<b>{name} 현재 PER</b>: {cur_v:.2f}배<extra></extra>'
                     ))
@@ -552,10 +553,10 @@ if query_button or st.session_state.get("executed", False):
 
             st.markdown(f"""
             <div style="background-color: #1E2430; border: 1px solid #2D3748; border-radius: 8px; padding: 16px 20px; font-size: 0.82rem; color: #E2E8F0; line-height: 1.8;">
-                • <b>현재 최고 밸류에이션(Trailing):</b> 비교 종목 중 현재 PER이 가장 높은 종목은 <b>{highest_per_stock['종목명']}</b> ({highest_per_stock['현재 PER']:.2f}배)입니다.<br/>
-                • <b>현재 최저 밸류에이션(Trailing):</b> 비교 종목 중 가장 낮은 PER 배수를 형성하고 있는 종목은 <b>{lowest_per_stock['종목명']}</b> ({lowest_per_stock['현재 PER']:.2f}배)입니다.<br/>
+                • <b>현재 최고 밸류에이션(Trailing TTM):</b> 비교 종목 중 현재 PER이 가장 높은 종목은 <b>{highest_per_stock['종목명']}</b> ({highest_per_stock['현재 PER']:.2f}배)입니다.<br/>
+                • <b>현재 최저 밸류에이션(Trailing TTM):</b> 비교 종목 중 가장 낮은 PER 배수를 형성하고 있는 종목은 <b>{lowest_per_stock['종목명']}</b> ({lowest_per_stock['현재 PER']:.2f}배)입니다.<br/>
                 • <b>12개월 선행 Fwd(12MF) PER:</b> 시장 컨센서스 기반의 향후 12개월 순이익을 반영한 Fwd PER을 제공하여, 향후 실적 개선 및 반도체 업황 턴어라운드에 따른 밸류에이션 완화 효과를 직관적으로 비교할 수 있습니다.<br/>
                 • <b>최대 멀티플 확장(Expansion):</b> 선택 기간({selected_period}) 동안 PER 멀티플이 가장 많이 확장된 종목은 <b>{max_expansion_stock['종목명']}</b> ({max_expansion_stock['PER 변동률 (%)']:+.2f}%)입니다.<br/>
-                • <b>데이터 산출 기준:</b> 한국 종목은 KRX 공식 일별 펀더멘털 및 FnGuide 12M Fwd 컨센서스를 기준하며, 미국 및 해외 종목은 최신 분기 Reported EPS 4개 분기 합산(TTM)과 일별 종가 및 Yahoo Finance Fwd PER을 결합하여 정밀 산출되었습니다.
+                • <b>데이터 산출 기준:</b> 한국 및 미국/해외 전 종목 모두 최근 4개 분기 실적 합산(TTM: Trailing Twelve Months) 기준의 분기 롤링 PER로 일원화하여 산출되었습니다. 선행 지표의 경우 한국 종목은 FnGuide 12M Fwd 컨센서스, 미국 및 해외 종목은 Yahoo Finance 12M Fwd PER을 결합하여 왜곡 없는 글로벌 1:1 비교가 가능합니다.
             </div>
             """, unsafe_allow_html=True)

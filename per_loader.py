@@ -1,8 +1,8 @@
 """
 per_loader.py
 한국 및 미국 주식 종목의 PER(Price-to-Earnings Ratio) 시계열 데이터를 수집하고 정제하는 모듈.
-- 한국 주식: pykrx의 get_market_fundamental_by_date 공식 데이터 활용 (yfinance TTM 폴백 지원)
-- 미국/해외 주식: yfinance 일별 주가 및 분기별 Reported EPS 기반 롤링 TTM PER 산출
+- 한국 및 미국/해외 주식 전 종목: 일별 종가 및 직전 4개 분기 EPS 기반 분기 롤링 TTM(Trailing Twelve Months) PER 통일 산출
+- 12M 선행 PER(Fwd.12M PER): FnGuide 스냅샷 및 yfinance forwardPE 활용
 """
 
 import os
@@ -206,49 +206,31 @@ def resolve_stock_selection(selected_display, custom_input, krx_df):
     return symbol, display_name, "US"
 
 
-def fetch_korean_per_series(code, start_date, end_date):
+def fetch_ttm_per_series(symbol, start_date, end_date):
     """
-    pykrx를 사용하여 한국 주식의 일별 PER 시계열을 수집합니다.
-    (실패 시 yfinance TTM PER 산출로 폴백)
+    일별 종가와 직전 4개 분기 Reported EPS(또는 Diluted EPS)를 결합하여
+    일별 롤링 TTM(Trailing Twelve Months) PER 시계열을 정밀 산출합니다.
+    (한국 및 미국/해외 주식 공통 적용)
     """
-    start_str = start_date.strftime('%Y%m%d')
-    end_str = end_date.strftime('%Y%m%d')
-
-    if HAS_PYKRX and stock is not None:
-        try:
-            df = stock.get_market_fundamental_by_date(start_str, end_str, code)
-            if df is not None and not df.empty and 'PER' in df.columns:
-                # 0 또는 음수 PER 제거 (미산출일 또는 적자)
-                per_series = df['PER'].copy()
-                per_series = per_series[per_series > 0]
-                if not per_series.empty:
-                    per_series.index = pd.to_datetime(per_series.index).normalize()
-                    return per_series
-        except Exception as e:
-            print(f"pykrx 수집 실패 ({code}): {e}, yfinance 폴백 시도")
-
-    # 폴백: yfinance
-    yf_symbol = f"{code}.KS"
-    return fetch_us_per_series(yf_symbol, start_date, end_date)
-
-
-def fetch_us_per_series(symbol, start_date, end_date):
-    """
-    yfinance의 일별 종가와 분기별 Reported EPS를 결합하여 일별 TTM PER 시계열을 산출합니다.
-    """
-    # 여유 기간을 두어 주가 데이터 로드
-    buf_start = (pd.to_datetime(start_date) - pd.Timedelta(days=60)).strftime('%Y-%m-%d')
-    buf_end = (pd.to_datetime(end_date) + pd.Timedelta(days=2)).strftime('%Y-%m-%d')
+    # 여유 기간을 두어 주가 및 분기 공시 데이터 로드
+    buf_start = (pd.to_datetime(start_date) - pd.Timedelta(days=90)).strftime('%Y-%m-%d')
+    buf_end = (pd.to_datetime(end_date) + pd.Timedelta(days=3)).strftime('%Y-%m-%d')
 
     tk = yf.Ticker(symbol)
-    hist = tk.history(start=buf_start, end=buf_end)
+    try:
+        hist = tk.history(start=buf_start, end=buf_end)
+    except Exception:
+        return pd.Series(dtype=float)
+
     if hist.empty:
         return pd.Series(dtype=float)
 
     hist.index = hist.index.tz_localize(None).normalize()
     prices = hist['Close'].dropna()
+    if prices.empty:
+        return pd.Series(dtype=float)
 
-    # 분기별 EPS 공시 데이터 수집
+    # 1. 분기별 Reported EPS 공시 데이터 우선 확인 (earnings_dates)
     ed = None
     try:
         ed = tk.earnings_dates
@@ -263,43 +245,48 @@ def fetch_us_per_series(symbol, start_date, end_date):
             ttm_eps_dates = eps_series.rolling(window=4).sum().dropna()
 
             if not ttm_eps_dates.empty:
-                # 주가 날짜와 공시 날짜를 합쳐 TTM EPS를 ffill
                 combined_index = prices.index.union(ttm_eps_dates.index).sort_values()
                 ttm_eps_daily = ttm_eps_dates.reindex(combined_index).ffill()
-                ttm_eps_aligned = ttm_eps_daily.reindex(prices.index).dropna()
-
-                # TTM EPS > 0인 날짜에 대해 PER 산출
-                valid_mask = ttm_eps_aligned > 0.01
-                if valid_mask.any():
-                    per_series = prices.loc[valid_mask] / ttm_eps_aligned.loc[valid_mask]
+                align_df = pd.DataFrame({'price': prices, 'ttm_eps': ttm_eps_daily.reindex(prices.index)}).dropna()
+                align_df = align_df[align_df['ttm_eps'] > 0.01]
+                if not align_df.empty:
+                    per_series = align_df['price'] / align_df['ttm_eps']
                     per_series = per_series.loc[pd.to_datetime(start_date):pd.to_datetime(end_date)]
-                    # 이상치 제거 (0 이하 또는 2000 초과)
                     per_series = per_series[(per_series > 0) & (per_series < 2000)]
                     if not per_series.empty:
                         return per_series
 
-    # 만약 earnings_dates가 없거나 부족한 경우 quarterly_income_stmt 시도
+    # 2. quarterly_income_stmt 의 Diluted EPS 또는 Basic EPS 시도
     try:
         stmt = tk.quarterly_income_stmt
-        if stmt is not None and 'Diluted EPS' in stmt.index:
-            eps_q = stmt.loc['Diluted EPS'].dropna().sort_index()
+        eps_row = None
+        if stmt is not None and not stmt.empty:
+            if 'Diluted EPS' in stmt.index:
+                eps_row = stmt.loc['Diluted EPS']
+            elif 'Basic EPS' in stmt.index:
+                eps_row = stmt.loc['Basic EPS']
+
+        if eps_row is not None:
+            eps_q = eps_row.dropna().sort_index()
             if len(eps_q) >= 4:
                 eps_q.index = pd.to_datetime(eps_q.index).normalize()
-                ttm_eps_q = eps_q.rolling(4).sum().dropna()
-                combined_index = prices.index.union(ttm_eps_q.index).sort_values()
-                ttm_eps_daily = ttm_eps_q.reindex(combined_index).ffill()
-                ttm_eps_aligned = ttm_eps_daily.reindex(prices.index).dropna()
-                valid_mask = ttm_eps_aligned > 0.01
-                if valid_mask.any():
-                    per_series = prices.loc[valid_mask] / ttm_eps_aligned.loc[valid_mask]
-                    per_series = per_series.loc[pd.to_datetime(start_date):pd.to_datetime(end_date)]
-                    per_series = per_series[(per_series > 0) & (per_series < 2000)]
-                    if not per_series.empty:
-                        return per_series
+                eps_q = eps_q[~eps_q.index.duplicated(keep='last')]
+                ttm_eps_q = eps_q.rolling(window=4).sum().dropna()
+                if not ttm_eps_q.empty:
+                    combined_index = prices.index.union(ttm_eps_q.index).sort_values()
+                    ttm_eps_daily = ttm_eps_q.reindex(combined_index).ffill()
+                    align_df = pd.DataFrame({'price': prices, 'ttm_eps': ttm_eps_daily.reindex(prices.index)}).dropna()
+                    align_df = align_df[align_df['ttm_eps'] > 0.01]
+                    if not align_df.empty:
+                        per_series = align_df['price'] / align_df['ttm_eps']
+                        per_series = per_series.loc[pd.to_datetime(start_date):pd.to_datetime(end_date)]
+                        per_series = per_series[(per_series > 0) & (per_series < 2000)]
+                        if not per_series.empty:
+                            return per_series
     except Exception:
         pass
 
-    # 최후의 수단: info의 trailingPE 상수비율 적용
+    # 3. 최후의 수단: info의 trailingPE 상수비율 적용
     try:
         trailing_pe = tk.info.get('trailingPE')
         if trailing_pe and trailing_pe > 0:
@@ -312,6 +299,60 @@ def fetch_us_per_series(symbol, start_date, end_date):
         pass
 
     return pd.Series(dtype=float)
+
+
+def fetch_korean_per_series(code, start_date, end_date):
+    """
+    한국 주식의 일별 분기 롤링 TTM PER 시계열을 산출합니다.
+    (미국 주식과 100% 동일한 직전 4개 분기 EPS 합산 TTM 기준)
+    """
+    clean_code = str(code).strip().upper()
+    if clean_code.endswith('.KS') or clean_code.endswith('.KQ'):
+        candidate_symbols = [clean_code]
+    else:
+        # KOSPI / KOSDAQ 구분 판별
+        krx_df = load_krx_data()
+        is_kosdaq = False
+        if not krx_df.empty:
+            match = krx_df[krx_df['Code'] == clean_code]
+            if not match.empty:
+                mkt = str(match.iloc[0].get('Market', '')).upper()
+                if 'KOSDAQ' in mkt:
+                    is_kosdaq = True
+
+        if is_kosdaq:
+            candidate_symbols = [f"{clean_code}.KQ", f"{clean_code}.KS"]
+        else:
+            candidate_symbols = [f"{clean_code}.KS", f"{clean_code}.KQ"]
+
+    for sym in candidate_symbols:
+        s = fetch_ttm_per_series(sym, start_date, end_date)
+        if s is not None and not s.empty:
+            return s
+
+    # 극히 드문 예외(신규상장 등 분기 공시 데이터가 전혀 없는 경우): pykrx 비상 폴백
+    if HAS_PYKRX and stock is not None:
+        try:
+            start_str = pd.to_datetime(start_date).strftime('%Y%m%d')
+            end_str = pd.to_datetime(end_date).strftime('%Y%m%d')
+            df = stock.get_market_fundamental_by_date(start_str, end_str, clean_code)
+            if df is not None and not df.empty and 'PER' in df.columns:
+                per_series = df['PER'].copy()
+                per_series = per_series[per_series > 0]
+                if not per_series.empty:
+                    per_series.index = pd.to_datetime(per_series.index).normalize()
+                    return per_series
+        except Exception:
+            pass
+
+    return pd.Series(dtype=float)
+
+
+def fetch_us_per_series(symbol, start_date, end_date):
+    """
+    미국 및 해외 주식의 일별 분기 롤링 TTM PER 시계열을 산출합니다.
+    """
+    return fetch_ttm_per_series(symbol, start_date, end_date)
 
 
 def fetch_forward_per(symbol, market_type):
@@ -344,10 +385,23 @@ def fetch_forward_per(symbol, market_type):
 
         # 2. yfinance 폴백 시도
         try:
-            tk = yf.Ticker(f"{symbol}.KS")
-            fpe = tk.info.get('forwardPE')
-            if fpe and fpe > 0:
-                return round(float(fpe), 2)
+            clean_sym = str(symbol).strip().upper()
+            if clean_sym.endswith('.KS') or clean_sym.endswith('.KQ'):
+                cand_tickers = [clean_sym]
+            else:
+                krx_df = load_krx_data()
+                is_kosdaq = False
+                if not krx_df.empty:
+                    match = krx_df[krx_df['Code'] == clean_sym]
+                    if not match.empty and 'KOSDAQ' in str(match.iloc[0].get('Market', '')).upper():
+                        is_kosdaq = True
+                cand_tickers = [f"{clean_sym}.KQ", f"{clean_sym}.KS"] if is_kosdaq else [f"{clean_sym}.KS", f"{clean_sym}.KQ"]
+
+            for cand in cand_tickers:
+                tk = yf.Ticker(cand)
+                fpe = tk.info.get('forwardPE')
+                if fpe and fpe > 0:
+                    return round(float(fpe), 2)
         except Exception:
             pass
     else:
