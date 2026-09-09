@@ -551,7 +551,7 @@ if query_button or st.session_state.get("executed", False):
             max_expansion_stock = summary_df.loc[summary_df["PER 변동률 (%)"].idxmax()]
 
             st.markdown(f"""
-            <div style="background-color: #1E2430; border: 1px solid #2D3748; border-radius: 8px; padding: 16px 20px; font-size: 0.88rem; color: #E2E8F0; line-height: 1.8;">
+            <div style="background-color: #1E2430; border: 1px solid #2D3748; border-radius: 8px; padding: 16px 20px; font-size: 0.82rem; color: #E2E8F0; line-height: 1.8;">
                 • <b>현재 최고 밸류에이션(Trailing):</b> 비교 종목 중 현재 PER이 가장 높은 종목은 <b>{highest_per_stock['종목명']}</b> ({highest_per_stock['현재 PER']:.2f}배)입니다.<br/>
                 • <b>현재 최저 밸류에이션(Trailing):</b> 비교 종목 중 가장 낮은 PER 배수를 형성하고 있는 종목은 <b>{lowest_per_stock['종목명']}</b> ({lowest_per_stock['현재 PER']:.2f}배)입니다.<br/>
                 • <b>12개월 선행 Fwd(12MF) PER:</b> 시장 컨센서스 기반의 향후 12개월 순이익을 반영한 Fwd PER을 제공하여, 향후 실적 개선 및 반도체 업황 턴어라운드에 따른 밸류에이션 완화 효과를 직관적으로 비교할 수 있습니다.<br/>
