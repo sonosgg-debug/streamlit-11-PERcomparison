@@ -24,10 +24,16 @@ st.markdown("""
         padding-bottom: 2.5rem;
     }
     
-    /* 사이드바 스타일링 */
+    /* 사이드바 스타일링 (기존 기본 폭 대비 약 20% 축소) */
     [data-testid="stSidebar"] {
         background-color: #111827;
         border-right: 1px solid #1F2937;
+    }
+    section[data-testid="stSidebar"][aria-expanded="true"],
+    [data-testid="stSidebar"][aria-expanded="true"] {
+        width: 270px !important;
+        min-width: 270px !important;
+        max-width: 270px !important;
     }
     
     /* 메트릭 카드 커스텀 디자인 */
@@ -119,23 +125,23 @@ st.sidebar.markdown("<hr style='border: 0; height: 1px; background-color: #33415
 st.sidebar.markdown("<h3 style='font-size: 0.98rem; font-weight: 600; color: #8AB4F8; margin-bottom: 8px;'>🔍 종목 선택 (5개)</h3>", unsafe_allow_html=True)
 
 # 종목 1
-select_s1 = st.sidebar.selectbox("종목 1 (디폴트: 삼성전자)", options=stock_select_options, index=default_idx1, key="sb1")
+select_s1 = st.sidebar.selectbox("종목 1", options=stock_select_options, index=default_idx1, key="sb1")
 custom_s1 = st.sidebar.text_input("종목 1 직접 입력", placeholder="예: 005930, AAPL", key="ci1") if select_s1 == "[직접 입력]" else ""
 
 # 종목 2
-select_s2 = st.sidebar.selectbox("종목 2 (디폴트: SK하이닉스)", options=stock_select_options, index=default_idx2, key="sb2")
+select_s2 = st.sidebar.selectbox("종목 2", options=stock_select_options, index=default_idx2, key="sb2")
 custom_s2 = st.sidebar.text_input("종목 2 직접 입력", placeholder="예: 000660, NVDA", key="ci2") if select_s2 == "[직접 입력]" else ""
 
 # 종목 3
-select_s3 = st.sidebar.selectbox("종목 3 (디폴트: 마이크론 MU)", options=stock_select_options, index=default_idx3, key="sb3")
+select_s3 = st.sidebar.selectbox("종목 3", options=stock_select_options, index=default_idx3, key="sb3")
 custom_s3 = st.sidebar.text_input("종목 3 직접 입력", placeholder="예: MU, MSFT", key="ci3") if select_s3 == "[직접 입력]" else ""
 
 # 종목 4
-select_s4 = st.sidebar.selectbox("종목 4 (디폴트: 샌디스크 SNDK)", options=stock_select_options, index=default_idx4, key="sb4")
+select_s4 = st.sidebar.selectbox("종목 4", options=stock_select_options, index=default_idx4, key="sb4")
 custom_s4 = st.sidebar.text_input("종목 4 직접 입력", placeholder="예: SNDK, WDC", key="ci4") if select_s4 == "[직접 입력]" else ""
 
 # 종목 5
-select_s5 = st.sidebar.selectbox("종목 5 (디폴트: TSMC TSM)", options=stock_select_options, index=default_idx5, key="sb5")
+select_s5 = st.sidebar.selectbox("종목 5", options=stock_select_options, index=default_idx5, key="sb5")
 custom_s5 = st.sidebar.text_input("종목 5 직접 입력", placeholder="예: TSM, ASML", key="ci5") if select_s5 == "[직접 입력]" else ""
 
 st.sidebar.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
