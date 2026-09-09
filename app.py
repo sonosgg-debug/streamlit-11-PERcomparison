@@ -555,8 +555,8 @@ if query_button or st.session_state.get("executed", False):
             <div style="background-color: #1E2430; border: 1px solid #2D3748; border-radius: 8px; padding: 16px 20px; font-size: 0.82rem; color: #E2E8F0; line-height: 1.8;">
                 • <b>현재 최고 밸류에이션(Trailing TTM):</b> 비교 종목 중 현재 PER이 가장 높은 종목은 <b>{highest_per_stock['종목명']}</b> ({highest_per_stock['현재 PER']:.2f}배)입니다.<br/>
                 • <b>현재 최저 밸류에이션(Trailing TTM):</b> 비교 종목 중 가장 낮은 PER 배수를 형성하고 있는 종목은 <b>{lowest_per_stock['종목명']}</b> ({lowest_per_stock['현재 PER']:.2f}배)입니다.<br/>
-                • <b>12개월 선행 Fwd(12MF) PER:</b> 시장 컨센서스 기반의 향후 12개월 순이익을 반영한 Fwd PER을 제공하여, 향후 실적 개선 및 업황 턴어라운드에 따른 밸류에이션 완화 효과를 직관적으로 비교할 수 있습니다.<br/>
                 • <b>최대 멀티플 확장(Expansion):</b> 선택 기간({selected_period}) 동안 PER 멀티플이 가장 많이 확장된 종목은 <b>{max_expansion_stock['종목명']}</b> ({max_expansion_stock['PER 변동률 (%)']:+.2f}%)입니다.<br/>
+                • <b>12개월 선행 Fwd(12MF) PER:</b> 시장 컨센서스 기반의 향후 12개월 순이익을 반영한 Fwd PER을 제공하여, 향후 실적 개선 및 업황 턴어라운드에 따른 밸류에이션 완화 효과를 직관적으로 비교할 수 있습니다.<br/>
                 • <b>데이터 산출 기준:</b> 한국 및 미국/해외 전 종목 모두 최근 4개 분기 실적 합산(TTM: Trailing Twelve Months) 기준의 분기 롤링 PER로 일원화하여 산출되었습니다. 선행 지표의 경우 한국 종목은 FnGuide 12M Fwd 컨센서스, 미국 및 해외 종목은 Yahoo Finance 12M Fwd PER을 결합하여 왜곡 없는 글로벌 1:1 비교가 가능합니다.
             </div>
             """, unsafe_allow_html=True)
