@@ -10,7 +10,6 @@ import per_loader
 # 1. 페이지 기본 설정
 st.set_page_config(
     page_title="한국 및 미국 시장 종목별 PER 변화 추이 비교",
-    page_icon="📈",
     layout="wide",
     initial_sidebar_state="expanded"
 )
