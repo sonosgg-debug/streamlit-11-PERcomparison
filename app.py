@@ -17,6 +17,14 @@ st.set_page_config(
 # 2. 커스텀 CSS 스타일링 (31 PerformanceChart 및 다크 테마 일관성 유지)
 st.markdown("""
 <style>
+    /* Headers & Main Title (00 Bookmarks 테마 일치) */
+    h1, .main h1, [data-testid="stHeadingWithActionElements"] h1, .main-title {
+        color: #8AB4F8 !important;
+        -webkit-text-fill-color: #8AB4F8 !important;
+        font-size: 1.9rem !important;
+        font-weight: 800 !important;
+        text-align: center !important;
+    }
     /* 메인 배경 및 폰트 */
     .block-container {
         padding-top: 1.8rem;
@@ -242,7 +250,7 @@ query_button = st.sidebar.button("조회 🚀", use_container_width=True, type="
 # ==================== 메인 화면 (오른쪽 패널) ====================
 
 # 1. 타이틀 영역 (서브타이틀 없이 폰트 색상 #8AB4F8)
-st.markdown("<h1 style='text-align: center; font-size: 1.9rem !important; font-weight: 800 !important; color: #8AB4F8 !important; -webkit-text-fill-color: #8AB4F8 !important; margin-top: 5px; margin-bottom: 12px;'><span style='color: #8AB4F8 !important;'>한국 및 미국 시장 종목별 PER 변화 추이 비교</span></h1>", unsafe_allow_html=True)
+st.markdown("<h1 class='main-title' style='text-align: center; font-size: 1.9rem !important; font-weight: 800 !important; color: #8AB4F8 !important; -webkit-text-fill-color: #8AB4F8 !important; margin-top: 5px; margin-bottom: 12px;'><span style='color: #8AB4F8 !important; -webkit-text-fill-color: #8AB4F8 !important;'>한국 및 미국 시장 종목별 PER 변화 추이 비교</span></h1>", unsafe_allow_html=True)
 
 # 2. 타이틀 영역과 차트 영역 사이 가로선
 st.markdown("<hr style='border: 0; height: 1px; background-color: #334155; margin-bottom: 22px;'>", unsafe_allow_html=True)
