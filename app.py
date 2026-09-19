@@ -595,7 +595,7 @@ if query_button or st.session_state.get("executed", False):
                 excel_data = per_loader.generate_excel_download(combined_df, summary_df)
                 today_tag = datetime.date.today().strftime('%Y%m%d')
                 st.download_button(
-                    label="📥 엑셀 다운로드 (.xlsx)",
+                    label="📥 엑셀 파일 다운로드",
                     data=excel_data,
                     file_name=f"PER_비교데이터_{selected_period}_{today_tag}.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
