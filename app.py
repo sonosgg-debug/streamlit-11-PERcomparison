@@ -21,12 +21,12 @@ st.markdown("""
     h1, .main h1, [data-testid="stHeadingWithActionElements"] h1, .main-title {
         color: #8AB4F8 !important;
         -webkit-text-fill-color: #8AB4F8 !important;
-        font-size: 1.9rem !important;
+        font-size: 2.0rem !important;
         font-weight: 800 !important;
         text-align: center !important;
     }
 
-    /* Primary Button Styling (39 DividendStock 테마 통일) */
+    /* Button Styling (39 DividendStock 표준 스타일 일치) */
     .stButton button[kind="primary"],
     .stButton > button[kind="primary"],
     section[data-testid="stSidebar"] button[kind="primary"] {
@@ -45,8 +45,10 @@ st.markdown("""
     }
 
     /* 메인 배경 및 폰트 */
+    .main .block-container,
+    [data-testid="stMainBlockContainer"],
     .block-container {
-        padding-top: 1.8rem;
+        padding-top: 2.0rem !important;
         padding-bottom: 2.5rem;
     }
     
@@ -269,7 +271,7 @@ query_button = st.sidebar.button("🔍 조회", use_container_width=True, type="
 # ==================== 메인 화면 (오른쪽 패널) ====================
 
 # 1. 타이틀 영역 (서브타이틀 없이 폰트 색상 #8AB4F8)
-st.markdown("<h1 class='main-title' style='text-align: center; font-size: 1.9rem !important; font-weight: 800 !important; color: #8AB4F8 !important; -webkit-text-fill-color: #8AB4F8 !important; margin-top: 5px; margin-bottom: 12px;'><span style='color: #8AB4F8 !important; -webkit-text-fill-color: #8AB4F8 !important;'>한국 및 미국 시장 종목별 PER 변화 추이 비교</span></h1>", unsafe_allow_html=True)
+st.markdown("<h1 class='main-title' style='text-align: center; font-size: 2.0rem !important; font-weight: 800 !important; color: #8AB4F8 !important; -webkit-text-fill-color: #8AB4F8 !important; margin-top: 5px; margin-bottom: 12px;'><span style='color: #8AB4F8 !important; -webkit-text-fill-color: #8AB4F8 !important;'>한국 및 미국 시장 종목별 PER 변화 추이 비교</span></h1>", unsafe_allow_html=True)
 
 # 2. 타이틀 영역과 차트 영역 사이 가로선
 st.markdown("<hr style='border: 0; height: 1px; background-color: #334155; margin-bottom: 22px;'>", unsafe_allow_html=True)
@@ -664,3 +666,6 @@ if query_button or st.session_state.get("executed", False):
                 • <b>데이터 산출 기준:</b> 한국 및 미국/해외 전 종목 모두 최근 4개 분기 실적 합산(TTM: Trailing Twelve Months) 기준의 분기 롤링 PER로 일원화하여 산출되었습니다. 선행 지표의 경우 한국 종목은 FnGuide 12M Fwd 컨센서스, 미국 및 해외 종목은 Yahoo Finance 12M Fwd PER을 결합하여 왜곡 없는 글로벌 1:1 비교가 가능합니다.
             </div>
             """, unsafe_allow_html=True)
+
+st.markdown("---")
+st.markdown("<div style='text-align: center; color: #64748b; font-size: 0.8rem; margin-top: 8px; margin-bottom: 24px; line-height: 1.6;'>⚠️ 본 서비스에서 제공하는 모든 정보는 투자 참고용이며, 투자의 최종 결정과 책임은 투자자 본인에게 있습니다.</div>", unsafe_allow_html=True)
