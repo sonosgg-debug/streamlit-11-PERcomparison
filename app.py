@@ -25,6 +25,25 @@ st.markdown("""
         font-weight: 800 !important;
         text-align: center !important;
     }
+
+    /* Primary Button Styling (39 DividendStock 테마 통일) */
+    .stButton button[kind="primary"],
+    .stButton > button[kind="primary"],
+    section[data-testid="stSidebar"] button[kind="primary"] {
+        background-color: #2563eb !important;
+        color: #ffffff !important;
+        border: none !important;
+        font-weight: 600 !important;
+        border-radius: 6px !important;
+        transition: all 0.2s ease !important;
+    }
+    .stButton button[kind="primary"]:hover,
+    .stButton > button[kind="primary"]:hover,
+    section[data-testid="stSidebar"] button[kind="primary"]:hover {
+        background-color: #1d4ed8 !important;
+        box-shadow: 0 0 10px rgba(37, 99, 235, 0.4) !important;
+    }
+
     /* 메인 배경 및 폰트 */
     .block-container {
         padding-top: 1.8rem;
@@ -244,7 +263,7 @@ selected_period = st.sidebar.selectbox(
 st.sidebar.markdown("<div style='height: 18px;'></div>", unsafe_allow_html=True)
 
 # 조회 버튼
-query_button = st.sidebar.button("조회 🚀", use_container_width=True, type="primary")
+query_button = st.sidebar.button("🔍 조회", use_container_width=True, type="primary")
 
 
 # ==================== 메인 화면 (오른쪽 패널) ====================
