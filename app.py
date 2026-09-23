@@ -44,6 +44,51 @@ st.markdown("""
         box-shadow: 0 0 10px rgba(37, 99, 235, 0.4) !important;
     }
 
+    /* 다운로드 버튼 공통 통일 스타일 */
+    div[data-testid="stDownloadButton"] > button,
+    .stDownloadButton > button {
+        background-color: #334155 !important;
+        color: #f8fafc !important;
+        border: 1px solid #475569 !important;
+        border-radius: 6px !important;
+        font-size: 0.875rem !important;
+        font-weight: 500 !important;
+        height: 38px !important;
+        min-height: 38px !important;
+        max-height: 38px !important;
+        line-height: 36px !important;
+        padding: 0 16px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        transition: all 0.2s ease-in-out !important;
+        box-sizing: border-box !important;
+    }
+    div[data-testid="stDownloadButton"] > button:hover,
+    .stDownloadButton > button:hover {
+        background-color: #475569 !important;
+        border-color: #38bdf8 !important;
+        color: #ffffff !important;
+        box-shadow: 0 0 10px rgba(56, 189, 248, 0.25) !important;
+    }
+    div[data-testid="stDownloadButton"] > button:active,
+    .stDownloadButton > button:active {
+        background-color: #1e293b !important;
+        border-color: #0284c7 !important;
+    }
+    div[data-testid="stDownloadButton"] > button p,
+    div[data-testid="stDownloadButton"] > button span,
+    .stDownloadButton > button p,
+    .stDownloadButton > button span {
+        font-size: 0.875rem !important;
+        font-weight: 500 !important;
+        color: inherit !important;
+        line-height: inherit !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
     /* 메인 배경 및 폰트 */
     .main .block-container,
     [data-testid="stMainBlockContainer"],
@@ -643,7 +688,7 @@ if query_button or st.session_state.get("executed", False):
             # ----------------------------------------------------
             st.markdown("<hr style='border: 0; height: 1px; background-color: #334155; margin-top: 30px; margin-bottom: 20px;'>", unsafe_allow_html=True)
             
-            head_col1, head_col2 = st.columns([3, 1])
+            head_col1, head_col2 = st.columns([8, 2], vertical_alignment="bottom")
             with head_col1:
                 st.markdown("<h3 style='font-size: 1.15rem; font-weight: 700; color: #F8FAFC;'><span style='font-size: 1.15rem;'>📋</span> 데이터 테이블 및 통계 요약</h3>", unsafe_allow_html=True)
             with head_col2:
