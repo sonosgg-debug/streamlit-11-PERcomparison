@@ -270,47 +270,57 @@ default_idx4 = find_default_index(["샌디스크 (SNDK)", "(SNDK)"])
 default_idx5 = find_default_index(["TSMC (TSM)", "(TSM)"])
 
 # ==================== 사이드바 (왼쪽 대시보드 패널) ====================
-st.sidebar.markdown("<h2 style='font-size: 1.25rem; font-weight: 700; color: #F8FAFC; margin-bottom: 8px;'>⚙️ 대시보드 설정</h2>", unsafe_allow_html=True)
-st.sidebar.markdown("<hr style='border: 0; height: 1px; background-color: #334155; margin-bottom: 18px;'>", unsafe_allow_html=True)
+with st.sidebar:
+    st.markdown("<h2 style='font-size: 1.25rem; font-weight: 700; color: #F8FAFC; margin-bottom: 8px;'>⚙️ 대시보드 설정</h2>", unsafe_allow_html=True)
+    st.markdown("<hr style='border: 0; height: 1px; background-color: #334155; margin-bottom: 18px;'>", unsafe_allow_html=True)
 
-st.sidebar.markdown("<h3 style='font-size: 0.98rem; font-weight: 600; color: #8AB4F8; margin-bottom: 8px;'>🔍 종목 선택 (5개)</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='font-size: 0.98rem; font-weight: 600; color: #8AB4F8; margin-bottom: 8px;'>🔍 비교 종목 선택 (최대 5개)</h3>", unsafe_allow_html=True)
 
-# 종목 1
-select_s1 = st.sidebar.selectbox("종목 1", options=stock_select_options, index=default_idx1, key="sb1")
-custom_s1 = st.sidebar.text_input("종목 1 직접 입력", placeholder="예: 005930, AAPL", key="ci1") if select_s1 == "[직접 입력]" else ""
+    # 종목 1
+    select_s1 = st.selectbox("종목 1", options=stock_select_options, index=default_idx1, key="sb1")
+    custom_s1 = st.text_input("종목 1 직접 입력", placeholder="예: 005930, AAPL", key="ci1") if select_s1 == "[직접 입력]" else ""
 
-# 종목 2
-select_s2 = st.sidebar.selectbox("종목 2", options=stock_select_options, index=default_idx2, key="sb2")
-custom_s2 = st.sidebar.text_input("종목 2 직접 입력", placeholder="예: 000660, NVDA", key="ci2") if select_s2 == "[직접 입력]" else ""
+    # 종목 2
+    select_s2 = st.selectbox("종목 2", options=stock_select_options, index=default_idx2, key="sb2")
+    custom_s2 = st.text_input("종목 2 직접 입력", placeholder="예: 000660, NVDA", key="ci2") if select_s2 == "[직접 입력]" else ""
 
-# 종목 3
-select_s3 = st.sidebar.selectbox("종목 3", options=stock_select_options, index=default_idx3, key="sb3")
-custom_s3 = st.sidebar.text_input("종목 3 직접 입력", placeholder="예: MU, MSFT", key="ci3") if select_s3 == "[직접 입력]" else ""
+    # 종목 3
+    select_s3 = st.selectbox("종목 3", options=stock_select_options, index=default_idx3, key="sb3")
+    custom_s3 = st.text_input("종목 3 직접 입력", placeholder="예: MU, MSFT", key="ci3") if select_s3 == "[직접 입력]" else ""
 
-# 종목 4
-select_s4 = st.sidebar.selectbox("종목 4", options=stock_select_options, index=default_idx4, key="sb4")
-custom_s4 = st.sidebar.text_input("종목 4 직접 입력", placeholder="예: SNDK, WDC", key="ci4") if select_s4 == "[직접 입력]" else ""
+    # 종목 4
+    select_s4 = st.selectbox("종목 4", options=stock_select_options, index=default_idx4, key="sb4")
+    custom_s4 = st.text_input("종목 4 직접 입력", placeholder="예: SNDK, WDC", key="ci4") if select_s4 == "[직접 입력]" else ""
 
-# 종목 5
-select_s5 = st.sidebar.selectbox("종목 5", options=stock_select_options, index=default_idx5, key="sb5")
-custom_s5 = st.sidebar.text_input("종목 5 직접 입력", placeholder="예: TSM, ASML", key="ci5") if select_s5 == "[직접 입력]" else ""
+    # 종목 5
+    select_s5 = st.selectbox("종목 5", options=stock_select_options, index=default_idx5, key="sb5")
+    custom_s5 = st.text_input("종목 5 직접 입력", placeholder="예: TSM, ASML", key="ci5") if select_s5 == "[직접 입력]" else ""
 
-st.sidebar.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
 
-# 기간 선택
-st.sidebar.markdown("<h3 style='font-size: 0.98rem; font-weight: 600; color: #8AB4F8; margin-bottom: 8px;'>📅 기간 선택</h3>", unsafe_allow_html=True)
-period_options = ["1M", "3M", "6M", "1Y", "3Y"]
-selected_period = st.sidebar.selectbox(
-    "조회 기간",
-    options=period_options,
-    index=1,  # 디폴트 3M
-    help="1M: 1개월, 3M: 3개월, 6M: 6개월, 1Y: 1년, 3Y: 3년"
-)
+    # 기간 선택
+    st.markdown("<h3 style='font-size: 0.98rem; font-weight: 600; color: #8AB4F8; margin-bottom: 8px;'>📅 조회 기간</h3>", unsafe_allow_html=True)
+    period_options = ["1M", "3M", "6M", "1Y", "3Y"]
+    selected_period = st.selectbox(
+        "조회 기간",
+        options=period_options,
+        index=1,  # 디폴트 3M
+        help="1M: 1개월, 3M: 3개월, 6M: 6개월, 1Y: 1년, 3Y: 3년"
+    )
 
-st.sidebar.markdown("<div style='height: 18px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height: 18px;'></div>", unsafe_allow_html=True)
 
-# 조회 버튼
-query_button = st.sidebar.button("🔍 조회", use_container_width=True, type="primary")
+    # 액션 버튼 (Update & 조회)
+    col_btn1, col_btn2 = st.columns(2)
+    with col_btn1:
+        btn_update = st.button("🔄 Update", use_container_width=True, help="캐시를 초기화하고 최신 PER 데이터를 다시 수집합니다.")
+    with col_btn2:
+        query_button = st.button("🔍 조회", use_container_width=True, type="primary", help="선택한 조건으로 대시보드를 새로고침합니다.")
+
+    if btn_update:
+        st.cache_data.clear()
+        st.session_state["executed"] = True
+        st.rerun()
 
 
 # ==================== 메인 화면 (오른쪽 패널) ====================
@@ -348,7 +358,7 @@ if query_button or st.session_state.get("executed", False):
                 seen_symbols.add(symbol)
                 valid_targets.append((symbol, disp_name, mkt_type))
             else:
-                st.sidebar.warning(f"⚠️ 중복된 종목 '{disp_name}'은(는) 한 번만 포함됩니다.")
+                st.warning(f"⚠️ 중복된 종목 '{disp_name}'은(는) 한 번만 포함됩니다.")
 
     if not valid_targets:
         st.warning("⚠️ 선택된 유효한 종목이 없습니다. 왼쪽 사이드바에서 종목을 선택한 후 [조회] 버튼을 눌러주세요.")
@@ -359,7 +369,7 @@ if query_button or st.session_state.get("executed", False):
 
         if err_dict:
             for item, msg in err_dict.items():
-                st.sidebar.info(f"ℹ️ {msg}")
+                st.info(f"ℹ️ {msg}")
 
         if combined_df.empty:
             st.error("❌ 선택한 종목 및 기간에 대한 PER 데이터를 확보하지 못했습니다. 종목 코드나 기간을 다시 확인해 주세요.")
