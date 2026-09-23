@@ -383,18 +383,18 @@ if query_button or st.session_state.get("executed", False):
                     ),
                     xaxis=dict(
                         title=dict(text="일자", font=dict(color="#CBD5E1", size=13)),
-                        gridcolor="#2A3342",
+                        gridcolor="#334155",
                         showline=True,
                         linewidth=1,
-                        linecolor="#3E4C5E",
+                        linecolor="#475569",
                         tickfont=dict(color="#CBD5E1")
                     ),
                     yaxis=dict(
                         title=dict(text="PER (배)", font=dict(color="#CBD5E1", size=13)),
-                        gridcolor="#2A3342",
+                        gridcolor="#334155",
                         showline=True,
                         linewidth=1,
-                        linecolor="#3E4C5E",
+                        linecolor="#475569",
                         ticksuffix="배",
                         tickfont=dict(color="#CBD5E1")
                     ),
@@ -406,22 +406,22 @@ if query_button or st.session_state.get("executed", False):
                         xanchor="right",
                         x=1,
                         font=dict(size=12, color="#E2E8F0"),
-                        bgcolor="rgba(30, 36, 48, 0.9)",
-                        bordercolor="#3E4C5E",
+                        bgcolor="rgba(30, 41, 59, 0.85)",
+                        bordercolor="#334155",
                         borderwidth=1
                     ),
                     hoverlabel=dict(
                         bgcolor="#0F172A",
                         font_color="#FFFFFF",
                         font_size=12,
-                        bordercolor="#3E4C5E"
+                        bordercolor="#334155"
                     ),
                     font=dict(
                         family="Pretendard, -apple-system, Malgun Gothic, sans-serif",
                         color="#E2E8F0"
                     ),
-                    plot_bgcolor="#161B24",
-                    paper_bgcolor="#1E2430",
+                    plot_bgcolor="#0F172A",
+                    paper_bgcolor="#1E293B",
                     margin=dict(l=40, r=40, t=75, b=40),
                     height=530
                 )
@@ -457,14 +457,14 @@ if query_button or st.session_state.get("executed", False):
                     ),
                     xaxis=dict(
                         title=dict(text="일자", font=dict(color="#CBD5E1")),
-                        gridcolor="#2A3342",
-                        linecolor="#3E4C5E",
+                        gridcolor="#334155",
+                        linecolor="#475569",
                         tickfont=dict(color="#CBD5E1")
                     ),
                     yaxis=dict(
                         title=dict(text="멀티플 지수 (100pt 기준)", font=dict(color="#CBD5E1")),
-                        gridcolor="#2A3342",
-                        linecolor="#3E4C5E",
+                        gridcolor="#334155",
+                        linecolor="#475569",
                         ticksuffix="p",
                         tickfont=dict(color="#CBD5E1")
                     ),
@@ -476,11 +476,11 @@ if query_button or st.session_state.get("executed", False):
                         xanchor="right",
                         x=1,
                         font=dict(size=12, color="#E2E8F0"),
-                        bgcolor="rgba(30, 36, 48, 0.9)",
-                        bordercolor="#3E4C5E"
+                        bgcolor="rgba(30, 41, 59, 0.85)",
+                        bordercolor="#334155"
                     ),
-                    plot_bgcolor="#161B24",
-                    paper_bgcolor="#1E2430",
+                    plot_bgcolor="#0F172A",
+                    paper_bgcolor="#1E293B",
                     margin=dict(l=40, r=40, t=75, b=40),
                     height=530
                 )
@@ -557,8 +557,8 @@ if query_button or st.session_state.get("executed", False):
                     ),
                     xaxis=dict(
                         title=dict(text="PER (배)", font=dict(color="#CBD5E1")),
-                        gridcolor="#2A3342",
-                        linecolor="#3E4C5E",
+                        gridcolor="#334155",
+                        linecolor="#475569",
                         ticksuffix="배",
                         tickfont=dict(color="#CBD5E1")
                     ),
@@ -574,11 +574,11 @@ if query_button or st.session_state.get("executed", False):
                         xanchor="right",
                         x=1,
                         font=dict(size=12, color="#E2E8F0"),
-                        bgcolor="rgba(30, 36, 48, 0.9)",
-                        bordercolor="#3E4C5E"
+                        bgcolor="rgba(30, 41, 59, 0.85)",
+                        bordercolor="#334155"
                     ),
-                    plot_bgcolor="#161B24",
-                    paper_bgcolor="#1E2430",
+                    plot_bgcolor="#0F172A",
+                    paper_bgcolor="#1E293B",
                     margin=dict(l=100, r=40, t=75, b=40),
                     height=450
                 )
