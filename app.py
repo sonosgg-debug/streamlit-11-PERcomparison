@@ -258,7 +258,7 @@ period_options = ["1M", "3M", "6M", "1Y", "3Y"]
 selected_period = st.sidebar.selectbox(
     "조회 기간",
     options=period_options,
-    index=0,  # 디폴트 1M
+    index=1,  # 디폴트 3M
     help="1M: 1개월, 3M: 3개월, 6M: 6개월, 1Y: 1년, 3Y: 3년"
 )
 
@@ -375,6 +375,22 @@ if query_button or st.session_state.get("executed", False):
                         hovertemplate='<b>' + col_name + '</b>: %{y:.2f}배<extra></extra>'
                     ))
 
+                # 오른쪽 Y축 눈금 표시를 위한 동기화 트레이스 (첫 번째 유효 시리즈 참조)
+                if not combined_df.empty:
+                    for col_name in combined_df.columns:
+                        first_valid_s = combined_df[col_name].dropna()
+                        if not first_valid_s.empty:
+                            fig1.add_trace(go.Scatter(
+                                x=first_valid_s.index,
+                                y=first_valid_s.values,
+                                yaxis='y2',
+                                showlegend=False,
+                                hoverinfo='skip',
+                                mode='lines',
+                                line=dict(width=0, color='rgba(0,0,0,0)')
+                            ))
+                            break
+
                 fig1.update_layout(
                     title=dict(
                         text=f"<b>종목별 PER(Price-to-Earnings Ratio) 일별 변화 추이 ({selected_period})</b>",
@@ -392,6 +408,17 @@ if query_button or st.session_state.get("executed", False):
                     yaxis=dict(
                         title=dict(text="PER (배)", font=dict(color="#CBD5E1", size=13)),
                         gridcolor="#334155",
+                        showline=True,
+                        linewidth=1,
+                        linecolor="#475569",
+                        ticksuffix="배",
+                        tickfont=dict(color="#CBD5E1")
+                    ),
+                    yaxis2=dict(
+                        overlaying="y",
+                        side="right",
+                        matches="y",
+                        showgrid=False,
                         showline=True,
                         linewidth=1,
                         linecolor="#475569",
@@ -422,7 +449,7 @@ if query_button or st.session_state.get("executed", False):
                     ),
                     plot_bgcolor="#0F172A",
                     paper_bgcolor="#1E293B",
-                    margin=dict(l=40, r=40, t=75, b=40),
+                    margin=dict(l=40, r=45, t=75, b=40),
                     height=530
                 )
                 st.plotly_chart(fig1, use_container_width=True, theme=None)
@@ -447,6 +474,22 @@ if query_button or st.session_state.get("executed", False):
                         hovertemplate='<b>' + col_name + '</b>: %{y:.2f}p<extra></extra>'
                     ))
 
+                # 오른쪽 Y축 눈금 표시를 위한 동기화 트레이스
+                if not normalized_df.empty:
+                    for col_name in normalized_df.columns:
+                        first_valid_norm = normalized_df[col_name].dropna()
+                        if not first_valid_norm.empty:
+                            fig2.add_trace(go.Scatter(
+                                x=first_valid_norm.index,
+                                y=first_valid_norm.values,
+                                yaxis='y2',
+                                showlegend=False,
+                                hoverinfo='skip',
+                                mode='lines',
+                                line=dict(width=0, color='rgba(0,0,0,0)')
+                            ))
+                            break
+
                 fig2.add_hline(y=100, line_dash="dash", line_color="#94A3B8", opacity=0.7, annotation_text="기준점(100)", annotation_position="top right")
 
                 fig2.update_layout(
@@ -468,6 +511,17 @@ if query_button or st.session_state.get("executed", False):
                         ticksuffix="p",
                         tickfont=dict(color="#CBD5E1")
                     ),
+                    yaxis2=dict(
+                        overlaying="y",
+                        side="right",
+                        matches="y",
+                        showgrid=False,
+                        showline=True,
+                        linewidth=1,
+                        linecolor="#475569",
+                        ticksuffix="p",
+                        tickfont=dict(color="#CBD5E1")
+                    ),
                     hovermode="x unified",
                     legend=dict(
                         orientation="h",
@@ -481,7 +535,7 @@ if query_button or st.session_state.get("executed", False):
                     ),
                     plot_bgcolor="#0F172A",
                     paper_bgcolor="#1E293B",
-                    margin=dict(l=40, r=40, t=75, b=40),
+                    margin=dict(l=40, r=45, t=75, b=40),
                     height=530
                 )
                 st.plotly_chart(fig2, use_container_width=True, theme=None)
