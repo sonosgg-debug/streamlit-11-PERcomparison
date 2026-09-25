@@ -97,10 +97,16 @@ st.markdown("""
         padding-bottom: 2.5rem;
     }
     
-    /* 사이드바 스타일링 (기존 기본 폭 대비 약 20% 축소) */
-    [data-testid="stSidebar"] {
-        background-color: #111827;
-        border-right: 1px solid #1F2937;
+    /* 사이드바 스타일링 */
+    section[data-testid="stSidebar"], [data-testid="stSidebar"] {
+        background-color: #1e293b !important;
+        border-right: 1px solid #334155 !important;
+    }
+    section[data-testid="stSidebar"] h1,
+    section[data-testid="stSidebar"] h2,
+    section[data-testid="stSidebar"] h3 {
+        color: #f8fafc !important;
+        -webkit-text-fill-color: #f8fafc !important;
     }
     section[data-testid="stSidebar"][aria-expanded="true"],
     [data-testid="stSidebar"][aria-expanded="true"] {
@@ -271,10 +277,22 @@ default_idx5 = find_default_index(["TSMC (TSM)", "(TSM)"])
 
 # ==================== 사이드바 (왼쪽 대시보드 패널) ====================
 with st.sidebar:
-    st.markdown("<h2 style='font-size: 1.25rem; font-weight: 700; color: #F8FAFC; margin-bottom: 8px;'>⚙️ 대시보드 설정</h2>", unsafe_allow_html=True)
-    st.markdown("<hr style='border: 0; height: 1px; background-color: #334155; margin-bottom: 18px;'>", unsafe_allow_html=True)
+    st.markdown(
+        """
+        <div style='padding: 2px 0 12px 0;'>
+            <div style='font-size: 1.25rem; font-weight: 700; color: #f8fafc; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px;'>
+                <span>⚙️</span> 대시보드 설정
+            </div>
+            <div style='font-size: 0.82rem; color: #94a3b8; margin-top: 4px; line-height: 1.4;'>
+                비교 분석할 종목(최대 5개)과 조회 기간을 설정합니다.
+            </div>
+        </div>
+        <hr style='border: 0; height: 1px; background-color: #334155; margin: 10px 0 16px 0;'>
+        """,
+        unsafe_allow_html=True
+    )
 
-    st.markdown("<h3 style='font-size: 0.98rem; font-weight: 600; color: #8AB4F8; margin-bottom: 8px;'>🔍 비교 종목 선택 (최대 5개)</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='font-size: 0.98rem; font-weight: 700; color: #e2e8f0; margin-bottom: 8px;'>🔍 비교 종목 선택 (최대 5개)</h3>", unsafe_allow_html=True)
 
     # 종목 1
     select_s1 = st.selectbox("종목 1", options=stock_select_options, index=default_idx1, key="sb1")
@@ -299,7 +317,7 @@ with st.sidebar:
     st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
 
     # 기간 선택
-    st.markdown("<h3 style='font-size: 0.98rem; font-weight: 600; color: #8AB4F8; margin-bottom: 8px;'>📅 조회 기간</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='font-size: 0.98rem; font-weight: 700; color: #e2e8f0; margin-bottom: 8px;'>📅 조회 기간</h3>", unsafe_allow_html=True)
     period_options = ["1M", "3M", "6M", "1Y", "3Y"]
     selected_period = st.selectbox(
         "조회 기간",
