@@ -420,7 +420,7 @@ if query_button or st.session_state.get("executed", False):
             # ----------------------------------------------------
             # 1. 상단 전문가 요약 KPI 카드 (5개 종목 핵심 지표)
             # ----------------------------------------------------
-            st.markdown("<h3 style='font-size: 1.15rem; font-weight: 700; color: #F8FAFC; margin-bottom: 4px;'>📌 핵심 밸류에이션 요약 (현재 PER 및 기간 변화)</h3>", unsafe_allow_html=True)
+            st.markdown("<div style='font-size: 1.20rem; font-weight: 700; color: #8AB4F8; margin: 20px 0 10px 0; display: flex; align-items: center; gap: 8px;'><span>📌</span> 핵심 밸류에이션 요약 (현재 PER 및 기간 변화)</div>", unsafe_allow_html=True)
             st.caption("※ 한국 및 미국 전 종목 모두 직전 4개 분기 실적 합산(TTM: Trailing Twelve Months) 기준의 분기 롤링 PER로 동일하게 산출되어 왜곡 없이 1:1 비교됩니다.")
             
             card_cols = st.columns(len(summary_df))
@@ -451,7 +451,7 @@ if query_button or st.session_state.get("executed", False):
             # ----------------------------------------------------
             # 2. 차트 영역 (차트 탭 구성: 절대 PER 추이 vs 상대 멀티플 지수)
             # ----------------------------------------------------
-            st.markdown("<h3 style='font-size: 1.15rem; font-weight: 700; color: #F8FAFC; margin-bottom: 12px;'>📉 PER 시계열 변화 추이 차트</h3>", unsafe_allow_html=True)
+            st.markdown("<div style='font-size: 1.20rem; font-weight: 700; color: #8AB4F8; margin: 20px 0 10px 0; display: flex; align-items: center; gap: 8px;'><span>📉</span> PER 시계열 변화 추이 차트</div>", unsafe_allow_html=True)
             
             chart_tab1, chart_tab2, chart_tab3 = st.tabs(["📊 PER 절대 수치 추이", "📈 상대 멀티플 지수 (기준일=100)", "🎯 밸류에이션 밴드 (최저~평균~최고)"])
 
@@ -743,7 +743,7 @@ if query_button or st.session_state.get("executed", False):
             
             head_col1, head_col2 = st.columns([8, 2], vertical_alignment="bottom")
             with head_col1:
-                st.markdown("<h3 style='font-size: 1.15rem; font-weight: 700; color: #F8FAFC;'><span style='font-size: 1.15rem;'>📋</span> 데이터 테이블 및 통계 요약</h3>", unsafe_allow_html=True)
+                st.markdown("<div style='font-size: 1.20rem; font-weight: 700; color: #8AB4F8; margin: 20px 0 10px 0; display: flex; align-items: center; gap: 8px;'><span>📋</span> 데이터 테이블 및 통계 요약</div>", unsafe_allow_html=True)
             with head_col2:
                 # 엑셀 다운로드 버튼
                 excel_data = per_loader.generate_excel_download(combined_df, summary_df)
@@ -802,7 +802,7 @@ if query_button or st.session_state.get("executed", False):
             # ----------------------------------------------------
             # 4. 전문가 밸류에이션 인사이트
             # ----------------------------------------------------
-            st.markdown("<h3 style='font-size: 1.15rem; font-weight: 700; color: #F8FAFC; margin-top: 25px; margin-bottom: 12px;'>💡 전문가 밸류에이션 인사이트</h3>", unsafe_allow_html=True)
+            st.markdown("<div style='font-size: 1.20rem; font-weight: 700; color: #8AB4F8; margin: 20px 0 10px 0; display: flex; align-items: center; gap: 8px;'><span>💡</span> 전문가 밸류에이션 인사이트</div>", unsafe_allow_html=True)
             
             # 최저 PER 및 최고 PER 종목
             highest_per_stock = summary_df.loc[summary_df["현재 PER"].idxmax()]
