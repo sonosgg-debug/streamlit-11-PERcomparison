@@ -317,7 +317,7 @@ with st.sidebar:
         unsafe_allow_html=True
     )
 
-    st.markdown("<h3 style='font-size: 0.98rem; font-weight: 700; color: #e2e8f0; margin-bottom: 8px;'>🔍 비교 종목 선택 (최대 5개)</h3>", unsafe_allow_html=True)
+    st.markdown("<div style='font-size: 0.95rem; font-weight: 700; color: #e2e8f0; margin-bottom: 8px;'>🔍 비교 종목 선택 (최대 5개)</div>", unsafe_allow_html=True)
 
     # 종목 1
     select_s1 = st.selectbox("종목 1", options=stock_select_options, index=default_idx1, key="sb1")
@@ -342,7 +342,7 @@ with st.sidebar:
     st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
 
     # 기간 선택
-    st.markdown("<h3 style='font-size: 0.98rem; font-weight: 700; color: #e2e8f0; margin-bottom: 8px;'>📅 조회 기간</h3>", unsafe_allow_html=True)
+    st.markdown("<div style='font-size: 0.95rem; font-weight: 700; color: #e2e8f0; margin-bottom: 8px;'>📅 조회 기간</div>", unsafe_allow_html=True)
     period_options = ["1M", "3M", "6M", "1Y", "3Y"]
     selected_period = st.selectbox(
         "조회 기간",
