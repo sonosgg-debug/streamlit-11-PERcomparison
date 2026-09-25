@@ -1,3 +1,6 @@
+import socket
+socket.setdefaulttimeout(5.0)
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -5,11 +8,29 @@ import plotly.graph_objects as go
 import plotly.express as px
 import datetime
 
+KST = datetime.timezone(datetime.timedelta(hours=9))
+
 import per_loader
+
+STANDARD_CHART_THEME = {
+    'paper_bgcolor': '#1E293B',    # Tailwind Slate-800 (외곽 카드 배경)
+    'plot_bgcolor': '#0F172A',     # Tailwind Slate-900 (내부 딥 블랙 플롯)
+    'text_main': '#F8FAFC',        # 타이틀/헤더 텍스트 (순백색)
+    'text_body': '#E2E8F0',        # 본문 및 축 라벨 (부드러운 화이트)
+    'text_muted': '#CBD5E1',       # 축 눈금 수치 텍스트 (Slate-300)
+    'grid_color': '#334155',       # 그리드 격자선 (Slate-700)
+    'border_color': '#475569',     # 축 기준선 (Slate-600)
+    'legend_bg': 'rgba(30, 41, 59, 0.85)',
+    'legend_border': '#334155',
+    'hover_bg': 'rgba(15, 23, 42, 0.9)',
+    'hover_border': '#334155'
+}
+
 
 # 1. 페이지 기본 설정
 st.set_page_config(
     page_title="종목별 PER 변화 추이 비교",
+    page_icon="📈",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -87,6 +108,11 @@ st.markdown("""
         line-height: inherit !important;
         margin: 0 !important;
         padding: 0 !important;
+    }
+
+    /* Streamlit 고정 상단 헤더 배경 투명화 */
+    header[data-testid="stHeader"] {
+        background: transparent !important;
     }
 
     /* 메인 배경 및 폰트 */
@@ -520,8 +546,8 @@ if query_button or st.session_state.get("executed", False):
                         family="Pretendard, -apple-system, Malgun Gothic, sans-serif",
                         color="#E2E8F0"
                     ),
-                    plot_bgcolor="#0F172A",
-                    paper_bgcolor="#1E293B",
+                    plot_bgcolor=STANDARD_CHART_THEME['plot_bgcolor'],
+                    paper_bgcolor=STANDARD_CHART_THEME['paper_bgcolor'],
                     margin=dict(l=40, r=45, t=75, b=40),
                     height=530
                 )
@@ -606,8 +632,8 @@ if query_button or st.session_state.get("executed", False):
                         bgcolor="rgba(30, 41, 59, 0.85)",
                         bordercolor="#334155"
                     ),
-                    plot_bgcolor="#0F172A",
-                    paper_bgcolor="#1E293B",
+                    plot_bgcolor=STANDARD_CHART_THEME['plot_bgcolor'],
+                    paper_bgcolor=STANDARD_CHART_THEME['paper_bgcolor'],
                     margin=dict(l=40, r=45, t=75, b=40),
                     height=530
                 )
@@ -704,8 +730,8 @@ if query_button or st.session_state.get("executed", False):
                         bgcolor="rgba(30, 41, 59, 0.85)",
                         bordercolor="#334155"
                     ),
-                    plot_bgcolor="#0F172A",
-                    paper_bgcolor="#1E293B",
+                    plot_bgcolor=STANDARD_CHART_THEME['plot_bgcolor'],
+                    paper_bgcolor=STANDARD_CHART_THEME['paper_bgcolor'],
                     margin=dict(l=100, r=40, t=75, b=40),
                     height=450
                 )
@@ -722,7 +748,7 @@ if query_button or st.session_state.get("executed", False):
             with head_col2:
                 # 엑셀 다운로드 버튼
                 excel_data = per_loader.generate_excel_download(combined_df, summary_df)
-                today_tag = datetime.date.today().strftime('%Y%m%d')
+                today_tag = datetime.datetime.now(KST).strftime('%Y%m%d')
                 st.download_button(
                     label="📥 엑셀 파일 다운로드",
                     data=excel_data,
