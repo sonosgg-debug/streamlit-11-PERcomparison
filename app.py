@@ -30,7 +30,6 @@ STANDARD_CHART_THEME = {
 # 1. 페이지 기본 설정
 st.set_page_config(
     page_title="종목별 PER 변화 추이 비교",
-    page_icon="📈",
     layout="wide",
     initial_sidebar_state="expanded"
 )
