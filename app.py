@@ -408,7 +408,7 @@ if query_button or st.session_state.get("executed", False):
     else:
         # 데이터 로딩 스피너
         with st.spinner(f"선택한 {len(valid_targets)}개 종목의 과거 PER 시계열 데이터를 수집 및 분석 중입니다..."):
-            combined_df, summary_df, err_dict = get_cached_per_data(tuple(valid_targets), selected_period)
+            combined_df, summary_df, err_dict, holiday_flags = get_cached_per_data(tuple(valid_targets), selected_period)
 
         if err_dict:
             for item, msg in err_dict.items():
@@ -434,11 +434,17 @@ if query_button or st.session_state.get("executed", False):
                 badge_class = "badge-up" if chg_pct >= 0 else "badge-down"
                 sign = "+" if chg_pct > 0 else ""
 
+                is_holiday = row.get("is_holiday", False)
+                holiday_label = row.get("거래 상태", "")
+                last_trade_date = row.get("최근 거래일", "")
+                holiday_tag = f"""<div style="color: #fbbf24; font-size: 0.78rem; font-weight: 600; margin-top: 3px;">⚠️ {holiday_label} ({last_trade_date})</div>""" if is_holiday and holiday_label != "정상 거래" else ""
+
                 with card_cols[i]:
                     st.markdown(f"""
                     <div class="metric-card">
                         <div class="metric-title" title="{name}">{name}</div>
                         <div class="metric-val">{cur_pe:.2f} <span style="font-size: 0.85rem; font-weight: 500; color: #94A3B8;">배 (Trailing TTM)</span></div>
+                        {holiday_tag}
                         <div class="metric-sub" style="margin-top: 6px;">
                             변동: <span class="{badge_class}">{sign}{chg_pct:.2f}%</span> | 평균: <span style="color: #CBD5E1;">{avg_pe:.2f}배</span><br/>
                             <span style="color: #94A3B8; font-weight: 600;">Fwd(12MF):</span> <span style="color: #34D399; font-weight: 700;">{fwd_text}</span>
@@ -456,6 +462,7 @@ if query_button or st.session_state.get("executed", False):
             chart_tab1, chart_tab2, chart_tab3 = st.tabs(["📊 PER 절대 수치 추이", "📈 상대 멀티플 지수 (기준일=100)", "🎯 밸류에이션 밴드 (최저~평균~최고)"])
 
             chart_colors = ['#38BDF8', '#F43F5E', '#10B981', '#FBBF24', '#A855F7', '#EC4899', '#6366F1']
+            mkt_map = dict(zip(summary_df["종목명"], summary_df.get("market_type", ["KR"] * len(summary_df))))
 
             # Tab 1: PER 절대 수치 꺾은선 그래프
             with chart_tab1:
@@ -463,6 +470,13 @@ if query_button or st.session_state.get("executed", False):
                 for i, col_name in enumerate(combined_df.columns):
                     c = chart_colors[i % len(chart_colors)]
                     series = combined_df[col_name].dropna()
+                    is_kr_stock = (mkt_map.get(col_name) == 'KR')
+                    hover_texts = []
+                    for dt, val in series.items():
+                        is_h = bool(holiday_flags[col_name].loc[dt]) if (not holiday_flags.empty and col_name in holiday_flags and dt in holiday_flags.index) else False
+                        h_note = " [국내 휴장, 직전 종가]" if (is_h and is_kr_stock) else (" [미국 휴장, 직전 종가]" if is_h else "")
+                        hover_texts.append(f"<b>{col_name}</b>: {val:.2f}배{h_note}")
+
                     fig1.add_trace(go.Scatter(
                         x=series.index,
                         y=series.values,
@@ -470,7 +484,8 @@ if query_button or st.session_state.get("executed", False):
                         name=col_name,
                         marker=dict(size=4),
                         line=dict(width=2.5, color=c),
-                        hovertemplate='<b>' + col_name + '</b>: %{y:.2f}배<extra></extra>'
+                        text=hover_texts,
+                        hoverinfo='text'
                     ))
 
                 # 오른쪽 Y축 눈금 표시를 위한 동기화 트레이스 (첫 번째 유효 시리즈 참조)
@@ -565,13 +580,21 @@ if query_button or st.session_state.get("executed", False):
                 for i, col_name in enumerate(normalized_df.columns):
                     c = chart_colors[i % len(chart_colors)]
                     series = normalized_df[col_name].dropna()
+                    is_kr_stock = (mkt_map.get(col_name) == 'KR')
+                    hover_texts2 = []
+                    for dt, val in series.items():
+                        is_h = bool(holiday_flags[col_name].loc[dt]) if (not holiday_flags.empty and col_name in holiday_flags and dt in holiday_flags.index) else False
+                        h_note = " [국내 휴장, 직전 종가]" if (is_h and is_kr_stock) else (" [미국 휴장, 직전 종가]" if is_h else "")
+                        hover_texts2.append(f"<b>{col_name}</b>: {val:.2f}p{h_note}")
+
                     fig2.add_trace(go.Scatter(
                         x=series.index,
                         y=series.values,
                         mode='lines',
                         name=col_name,
                         line=dict(width=2.5, color=c),
-                        hovertemplate='<b>' + col_name + '</b>: %{y:.2f}p<extra></extra>'
+                        text=hover_texts2,
+                        hoverinfo='text'
                     ))
 
                 # 오른쪽 Y축 눈금 표시를 위한 동기화 트레이스
@@ -766,9 +789,9 @@ if query_button or st.session_state.get("executed", False):
             with data_tab1:
                 formatted_summary = summary_df.copy()
                 
-                # 컬럼 순서 조정: 현재 PER 바로 옆에 Fwd(12MF) PER 배치
+                # 컬럼 순서 조정: 현재 PER 바로 옆에 거래 상태 및 최근 거래일 배치
                 cols_order = [
-                    "종목명", "현재 PER", "Fwd(12MF) PER", "시작 PER", 
+                    "종목명", "현재 PER", "거래 상태", "최근 거래일", "Fwd(12MF) PER", "시작 PER", 
                     "기간 평균 PER", "기간 최저 PER", "기간 최고 PER", 
                     "PER 변동률 (%)", "기간 위치 (%)", "밸류에이션 구간"
                 ]

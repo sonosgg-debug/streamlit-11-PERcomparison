@@ -89,6 +89,61 @@ MAJOR_US_STOCKS = [
     "아이온큐 (IONQ)"
 ]
 
+# 한국거래소(KRX) 정규 휴장일 (2024~2027)
+KRX_HOLIDAYS = {
+    # 2024
+    '20240101', '20240209', '20240212', '20240301', '20240410', '20240501', '20240506',
+    '20240515', '20240606', '20240815', '20240916', '20240917', '20240918', '20241001',
+    '20241003', '20241009', '20241225', '20241231',
+    # 2025
+    '20250101', '20250128', '20250129', '20250130', '20250303', '20250501', '20250505',
+    '20250506', '20250606', '20250815', '20251003', '20251006', '20251007', '20251008',
+    '20251009', '20251225', '20251231',
+    # 2026
+    '20260101', '20260216', '20260217', '20260218', '20260302', '20260501', '20260505',
+    '20260525', '20260603', '20260606', '20260817', '20260924', '20260925', '20261005',
+    '20261009', '20261225', '20261231',
+    # 2027
+    '20270101', '20270208', '20270209', '20270210', '20270301', '20270503', '20270505',
+    '20270513', '20270607', '20270816', '20270914', '20270915', '20270916', '20271004',
+    '20271011', '20271225', '20271231'
+}
+
+# 미국 증시(NYSE, NASDAQ) 정규 휴장일 (2024~2027)
+US_HOLIDAYS = {
+    # 2024
+    '20240101', '20240115', '20240219', '20240329', '20240527', '20240619', '20240704',
+    '20240902', '20241128', '20241225',
+    # 2025
+    '20250101', '20250120', '20250217', '20250418', '20250526', '20250619', '20250704',
+    '20250901', '20251127', '20251225',
+    # 2026
+    '20260101', '20260119', '20260216', '20260403', '20260525', '20260619', '20260703',
+    '20260907', '20261126', '20261225',
+    # 2027
+    '20270101', '20270118', '20270215', '20270326', '20270531', '20270618', '20270705',
+    '20270906', '20271125', '20271224'
+}
+
+def is_krx_trading_day(date_val) -> bool:
+    clean = str(date_val).replace('-', '').strip()[:8]
+    try:
+        dt = datetime.datetime.strptime(clean, "%Y%m%d")
+        return (dt.weekday() < 5) and (clean not in KRX_HOLIDAYS)
+    except Exception:
+        return False
+
+def is_us_trading_day(date_val) -> bool:
+    clean = str(date_val).replace('-', '').strip()[:8]
+    try:
+        dt = datetime.datetime.strptime(clean, "%Y%m%d")
+        return (dt.weekday() < 5) and (clean not in US_HOLIDAYS)
+    except Exception:
+        return False
+
+def is_any_market_trading_day(date_val) -> bool:
+    return is_krx_trading_day(date_val) or is_us_trading_day(date_val)
+
 
 def load_krx_data(cache_file="krx_cache.csv"):
     """
@@ -464,13 +519,16 @@ def load_all_per_data(selected_targets, period_str):
     선택된 종목 리스트에 대해 PER 시계열 데이터를 수집하고 정렬된 데이터프레임과 통계 요약을 생성합니다.
     - selected_targets: [(symbol, display_name, market_type), ...]
     - period_str: '1M', '3M', '6M', '1Y', '3Y'
+    - 한미 교차 시장 휴장일 결측을 보존하고, [휴장, 직전 종가] 상태를 명시적으로 식별합니다.
     """
     start_date, end_date = get_period_dates(period_str)
     series_dict = {}
     fwd_per_dict = {}
     errors = {}
+    market_map = {}
 
     for symbol, display_name, market_type in selected_targets:
+        market_map[display_name] = market_type
         # 1. 일별 PER 시계열 수집
         try:
             if market_type == 'KR':
@@ -495,15 +553,21 @@ def load_all_per_data(selected_targets, period_str):
             fwd_per_dict[display_name] = None
 
     if not series_dict:
-        return pd.DataFrame(), pd.DataFrame(), errors
+        return pd.DataFrame(), pd.DataFrame(), errors, pd.DataFrame()
 
-    # 날짜 인덱스 통합 데이터프레임
-    combined_df = pd.DataFrame(series_dict)
-    combined_df.index = pd.to_datetime(combined_df.index)
-    combined_df.sort_index(inplace=True)
+    # 날짜 인덱스 통합 데이터프레임 (Outer Join)
+    raw_df = pd.DataFrame(series_dict)
+    raw_df.index = pd.to_datetime(raw_df.index)
+    raw_df.sort_index(inplace=True)
+
+    # 양국 시장 중 최소 한 곳이라도 개장한 날 보존
+    raw_df = raw_df.dropna(how='all')
+
+    # 휴장 상태 플래그 (True면 해당 일자에 해당 자산 시장이 휴장/결측)
+    holiday_flags = raw_df.isna()
 
     # 서로 다른 휴장일 간 ffill 적용 후 bfill
-    combined_df = combined_df.ffill().bfill()
+    combined_df = raw_df.ffill().bfill()
 
     # 통계 요약표 계산
     summary_rows = []
@@ -534,6 +598,17 @@ def load_all_per_data(selected_targets, period_str):
 
         fwd_pe = fwd_per_dict.get(col)
 
+        # 최근 실제 거래일 및 최종 휴장 여부 산출
+        raw_s = raw_df[col].dropna()
+        m_type = market_map.get(col, 'KR')
+        actual_trade_date = raw_s.index[-1].strftime('%Y-%m-%d') if not raw_s.empty else ""
+        is_latest_holiday = bool(holiday_flags[col].iloc[-1]) if (not holiday_flags.empty and col in holiday_flags) else False
+
+        if is_latest_holiday:
+            holiday_label = "[국내 휴장, 직전 종가]" if m_type == 'KR' else "[미국 휴장, 직전 종가]"
+        else:
+            holiday_label = "정상 거래"
+
         summary_rows.append({
             "종목명": col,
             "현재 PER": round(cur_val, 2),
@@ -544,11 +619,15 @@ def load_all_per_data(selected_targets, period_str):
             "기간 최고 PER": round(max_val, 2),
             "PER 변동률 (%)": round(change_pct, 2),
             "기간 위치 (%)": round(percentile, 1),
-            "밸류에이션 구간": val_status
+            "밸류에이션 구간": val_status,
+            "최근 거래일": actual_trade_date,
+            "거래 상태": holiday_label,
+            "is_holiday": is_latest_holiday,
+            "market_type": m_type
         })
 
     summary_df = pd.DataFrame(summary_rows)
-    return combined_df, summary_df, errors
+    return combined_df, summary_df, errors, holiday_flags
 
 
 def generate_excel_download(combined_df, summary_df):
@@ -571,35 +650,50 @@ def generate_excel_download(combined_df, summary_df):
 
     return output.getvalue()
 
-def get_latest_expected_trading_day(target_date: str = None) -> str:
+
+def get_latest_expected_trading_day(target_date: str = None, market: str = 'KRX') -> str:
     """
     가장 최근 거래 완료된 실제 영업일 YYYY-MM-DD 반환.
-    - target_date가 전달된 경우: 해당 날짜 기준 (또는 직전 영업일)
-    - target_date가 없는 경우: KST 기준 15:45 이전이거나 오늘이 주말/새벽이면 직전 마감 거래일 반환
+    - target_date가 전달된 경우: 해당 날짜가 거래일이면 그대로, 휴장일이면 직전 실제 거래일로 자동 보정
+    - target_date가 없는 경우: KST 기준 15:45 이전이거나 오늘이 법정 공휴일/주말/새벽이면 직전 마감 거래일 반환
     """
-    from datetime import datetime, timezone, timedelta
-    now_kst = datetime.now(timezone(timedelta(hours=9)))
-    if target_date:
-        try:
-            clean_date = str(target_date).replace('-', '')
-            dt = datetime.strptime(clean_date, "%Y%m%d").replace(tzinfo=timezone(timedelta(hours=9)))
-        except Exception:
-            dt = now_kst
+    mkt = market.upper() if market else 'KRX'
+    if any(u in mkt for u in ['US', 'NASDAQ', 'S&P', 'AMERICA']):
+        checker = is_us_trading_day
+    elif mkt == 'ANY':
+        checker = is_any_market_trading_day
     else:
-        dt = now_kst
+        checker = is_krx_trading_day
 
-    # 평일 15:45 이후에만 당일 종가 확정
-    if dt.weekday() < 5 and (dt.hour > 15 or (dt.hour == 15 and dt.minute >= 45)):
-        return dt.strftime("%Y-%m-%d")
+    now_kst = datetime.datetime.now(KST)
 
-    # 장전, 새벽, 주말: 직전 마감 거래일 산출
-    if dt.weekday() == 0:    # 월요일 장전 -> 지난주 금요일 (3일 전)
-        days_back = 3
-    elif dt.weekday() == 6:  # 일요일 -> 지난주 금요일 (2일 전)
-        days_back = 2
-    elif dt.weekday() == 5:  # 토요일 -> 지난주 금요일 (1일 전)
-        days_back = 1
-    else:                    # 화~금 장전/새벽 -> 전일 (1일 전)
-        days_back = 1
+    if target_date:
+        clean_date = str(target_date).replace('-', '').strip()
+        try:
+            dt = datetime.datetime.strptime(clean_date, "%Y%m%d")
+            while True:
+                d_str = dt.strftime("%Y%m%d")
+                if checker(d_str):
+                    return f"{d_str[:4]}-{d_str[4:6]}-{d_str[6:]}"
+                dt -= datetime.timedelta(days=1)
+        except Exception:
+            return str(target_date)
 
-    return (dt - timedelta(days=days_back)).strftime("%Y-%m-%d")
+    if any(u in mkt for u in ['US', 'NASDAQ', 'S&P', 'AMERICA']):
+        now_utc = datetime.datetime.now(datetime.timezone.utc)
+        now_edt = now_utc - datetime.timedelta(hours=4)
+        candidate = now_edt if now_edt.hour >= 16 else (now_edt - datetime.timedelta(days=1))
+    else:
+        # 평일 15:45 이후에만 당일 종가 확정 (공휴일은 제외)
+        if now_kst.hour > 15 or (now_kst.hour == 15 and now_kst.minute >= 45):
+            candidate = now_kst
+        else:
+            candidate = now_kst - datetime.timedelta(days=1)
+
+    for _ in range(30):
+        d_str = candidate.strftime("%Y%m%d")
+        if checker(d_str):
+            return f"{d_str[:4]}-{d_str[4:6]}-{d_str[6:]}"
+        candidate -= datetime.timedelta(days=1)
+
+    return now_kst.strftime("%Y-%m-%d")
