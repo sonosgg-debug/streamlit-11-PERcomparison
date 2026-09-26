@@ -1,5 +1,5 @@
 import socket
-socket.setdefaulttimeout(5.0)
+socket.setdefaulttimeout(15.0)
 
 import streamlit as st
 import pandas as pd
@@ -497,6 +497,8 @@ if query_button or st.session_state.get("executed", False):
                     ),
                     xaxis=dict(
                         title=dict(text="일자", font=dict(color="#CBD5E1", size=13)),
+                        tickformat="%Y-%m-%d",
+                        hoverformat="%Y-%m-%d",
                         gridcolor="#334155",
                         showline=True,
                         linewidth=1,
@@ -598,6 +600,8 @@ if query_button or st.session_state.get("executed", False):
                     ),
                     xaxis=dict(
                         title=dict(text="일자", font=dict(color="#CBD5E1")),
+                        tickformat="%Y-%m-%d",
+                        hoverformat="%Y-%m-%d",
                         gridcolor="#334155",
                         linecolor="#475569",
                         tickfont=dict(color="#CBD5E1")

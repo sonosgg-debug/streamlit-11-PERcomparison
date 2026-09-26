@@ -6,13 +6,14 @@ per_loader.py
 """
 
 import socket
-socket.setdefaulttimeout(5.0)
+socket.setdefaulttimeout(15.0)
 
 import os
 import io
 import datetime
 import pandas as pd
 import numpy as np
+import FinanceDataReader as fdr
 from dotenv import load_dotenv
 
 KST = datetime.timezone(datetime.timedelta(hours=9))
@@ -221,19 +222,38 @@ def fetch_ttm_per_series(symbol, start_date, end_date):
     buf_start = (pd.to_datetime(start_date) - pd.Timedelta(days=90)).strftime('%Y-%m-%d')
     buf_end = (pd.to_datetime(end_date) + pd.Timedelta(days=3)).strftime('%Y-%m-%d')
 
-    tk = yf.Ticker(symbol)
-    try:
-        hist = tk.history(start=buf_start, end=buf_end)
-    except Exception:
-        return pd.Series(dtype=float)
+    clean_sym = symbol.replace('.KS', '').replace('.KQ', '').strip()
+    is_kr = symbol.endswith('.KS') or symbol.endswith('.KQ') or clean_sym.isdigit()
 
-    if hist.empty:
-        return pd.Series(dtype=float)
+    if is_kr:
+        try:
+            df_fdr = fdr.DataReader(clean_sym, buf_start, buf_end)
+            if df_fdr is not None and not df_fdr.empty and 'Close' in df_fdr.columns:
+                prices = df_fdr['Close'].dropna()
+                if prices.index.tz is not None:
+                    prices.index = prices.index.tz_localize(None)
+                prices.index = prices.index.normalize()
+            else:
+                prices = pd.Series(dtype=float)
+        except Exception:
+            prices = pd.Series(dtype=float)
+    else:
+        tk = yf.Ticker(symbol)
+        try:
+            hist = tk.history(start=buf_start, end=buf_end)
+            if not hist.empty:
+                hist.index = hist.index.tz_localize(None).normalize()
+                prices = hist['Close'].dropna()
+            else:
+                prices = pd.Series(dtype=float)
+        except Exception:
+            prices = pd.Series(dtype=float)
 
-    hist.index = hist.index.tz_localize(None).normalize()
-    prices = hist['Close'].dropna()
     if prices.empty:
         return pd.Series(dtype=float)
+
+    # Ticker 객체 (분기 EPS 공시 조회용)
+    tk = yf.Ticker(symbol)
 
     # 1. 분기별 Reported EPS 공시 데이터 우선 확인 (earnings_dates)
     ed = None
