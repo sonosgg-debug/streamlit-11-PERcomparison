@@ -10,7 +10,9 @@ import datetime
 
 KST = datetime.timezone(datetime.timedelta(hours=9))
 
+import importlib
 import per_loader
+importlib.reload(per_loader)
 
 STANDARD_CHART_THEME = {
     'paper_bgcolor': '#1E293B',    # Tailwind Slate-800 (외곽 카드 배경)
@@ -281,7 +283,12 @@ def get_cached_krx_data():
 
 @st.cache_data(ttl=3600)
 def get_cached_per_data(targets_tuple, period_str):
-    return per_loader.load_all_per_data(list(targets_tuple), period_str)
+    res = per_loader.load_all_per_data(list(targets_tuple), period_str)
+    if isinstance(res, tuple) and len(res) == 4:
+        return res
+    elif isinstance(res, tuple) and len(res) == 3:
+        return res[0], res[1], res[2], pd.DataFrame()
+    return res
 
 krx_df = get_cached_krx_data()
 stock_select_options = per_loader.build_stock_options(krx_df)
@@ -408,7 +415,14 @@ if query_button or st.session_state.get("executed", False):
     else:
         # 데이터 로딩 스피너
         with st.spinner(f"선택한 {len(valid_targets)}개 종목의 과거 PER 시계열 데이터를 수집 및 분석 중입니다..."):
-            combined_df, summary_df, err_dict, holiday_flags = get_cached_per_data(tuple(valid_targets), selected_period)
+            per_data_res = get_cached_per_data(tuple(valid_targets), selected_period)
+            if isinstance(per_data_res, tuple) and len(per_data_res) == 4:
+                combined_df, summary_df, err_dict, holiday_flags = per_data_res
+            elif isinstance(per_data_res, tuple) and len(per_data_res) == 3:
+                combined_df, summary_df, err_dict = per_data_res
+                holiday_flags = pd.DataFrame()
+            else:
+                combined_df, summary_df, err_dict, holiday_flags = pd.DataFrame(), pd.DataFrame(), {}, pd.DataFrame()
 
         if err_dict:
             for item, msg in err_dict.items():

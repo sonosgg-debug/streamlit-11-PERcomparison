@@ -651,12 +651,23 @@ def generate_excel_download(combined_df, summary_df):
     return output.getvalue()
 
 
-def get_latest_expected_trading_day(target_date: str = None, market: str = 'KRX') -> str:
+def get_latest_expected_trading_day(target_date: str = None, market: str = 'KRX', **kwargs) -> str:
     """
     가장 최근 거래 완료된 실제 영업일 YYYY-MM-DD 반환.
     - target_date가 전달된 경우: 해당 날짜가 거래일이면 그대로, 휴장일이면 직전 실제 거래일로 자동 보정
     - target_date가 없는 경우: KST 기준 15:45 이전이거나 오늘이 법정 공휴일/주말/새벽이면 직전 마감 거래일 반환
+    - kwargs 및 위치 인자 유연성 지원
     """
+    if 'market' in kwargs:
+        market = kwargs['market']
+    if 'target_date' in kwargs:
+        target_date = kwargs['target_date']
+
+    # 첫 번째 위치 인자로 market 문자열이 넘어온 경우 자동 스왑
+    if target_date and any(m in str(target_date).upper() for m in ['KRX', 'KOSPI', 'KOSDAQ', 'US', 'NASDAQ', 'S&P', 'ANY', 'KOREA', 'AMERICA']):
+        market = target_date
+        target_date = None
+
     mkt = market.upper() if market else 'KRX'
     if any(u in mkt for u in ['US', 'NASDAQ', 'S&P', 'AMERICA']):
         checker = is_us_trading_day
