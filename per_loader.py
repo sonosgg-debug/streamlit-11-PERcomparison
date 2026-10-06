@@ -5,9 +5,6 @@ per_loader.py
 - 12M 선행 PER(Fwd.12M PER): FnGuide 스냅샷 및 yfinance forwardPE 활용
 """
 
-import socket
-socket.setdefaulttimeout(15.0)
-
 import os
 import io
 import datetime
@@ -144,7 +141,6 @@ def is_us_trading_day(date_val) -> bool:
 def is_any_market_trading_day(date_val) -> bool:
     return is_krx_trading_day(date_val) or is_us_trading_day(date_val)
 
-
 def load_krx_data(cache_file="krx_cache.csv"):
     """
     KRX 상장종목 목록을 로드하여 반환합니다.
@@ -193,7 +189,6 @@ def load_krx_data(cache_file="krx_cache.csv"):
     ]
     return pd.DataFrame(fallback_data)
 
-
 def build_stock_options(krx_df):
     """
     사이드바 종목 선택 옵션 리스트를 생성합니다.
@@ -204,7 +199,6 @@ def build_stock_options(krx_df):
     
     options = ["선택 안 함"] + krx_options + MAJOR_US_STOCKS + ["[직접 입력]"]
     return options
-
 
 def resolve_stock_selection(selected_display, custom_input, krx_df):
     """
@@ -265,7 +259,6 @@ def resolve_stock_selection(selected_display, custom_input, krx_df):
         display_name = symbol
 
     return symbol, display_name, "US"
-
 
 def fetch_ttm_per_series(symbol, start_date, end_date):
     """
@@ -380,7 +373,6 @@ def fetch_ttm_per_series(symbol, start_date, end_date):
 
     return pd.Series(dtype=float)
 
-
 def fetch_korean_per_series(code, start_date, end_date):
     """
     한국 주식의 일별 분기 롤링 TTM PER 시계열을 산출합니다.
@@ -427,13 +419,11 @@ def fetch_korean_per_series(code, start_date, end_date):
 
     return pd.Series(dtype=float)
 
-
 def fetch_us_per_series(symbol, start_date, end_date):
     """
     미국 및 해외 주식의 일별 분기 롤링 TTM PER 시계열을 산출합니다.
     """
     return fetch_ttm_per_series(symbol, start_date, end_date)
-
 
 def fetch_forward_per(symbol, market_type):
     """
@@ -496,7 +486,6 @@ def fetch_forward_per(symbol, market_type):
 
     return None
 
-
 def get_period_dates(period_str):
     """
     기간 문자열('1M', '3M', '6M', '1Y', '3Y')에 대응하는 (start_date, end_date)를 반환합니다.
@@ -512,7 +501,6 @@ def get_period_dates(period_str):
     days = days_map.get(period_str, 30)
     start_date = end_date - datetime.timedelta(days=days)
     return start_date, end_date
-
 
 def load_all_per_data(selected_targets, period_str):
     """
@@ -629,7 +617,6 @@ def load_all_per_data(selected_targets, period_str):
     summary_df = pd.DataFrame(summary_rows)
     return combined_df, summary_df, errors, holiday_flags
 
-
 def generate_excel_download(combined_df, summary_df):
     """
     일별 PER 데이터 및 요약 통계를 엑셀 파일 바이너리로 변환합니다.
@@ -649,7 +636,6 @@ def generate_excel_download(combined_df, summary_df):
             export_df.to_excel(writer, sheet_name='일별_PER_데이터', index=False)
 
     return output.getvalue()
-
 
 def get_latest_expected_trading_day(target_date: str = None, market: str = 'KRX', **kwargs) -> str:
     """

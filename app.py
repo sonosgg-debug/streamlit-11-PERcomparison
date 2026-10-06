@@ -1,5 +1,3 @@
-import socket
-socket.setdefaulttimeout(15.0)
 
 import streamlit as st
 import pandas as pd
@@ -27,7 +25,6 @@ STANDARD_CHART_THEME = {
     'hover_bg': 'rgba(15, 23, 42, 0.9)',
     'hover_border': '#334155'
 }
-
 
 # 1. 페이지 기본 설정
 st.set_page_config(
@@ -371,7 +368,6 @@ with st.sidebar:
         st.cache_data.clear()
         st.session_state["executed"] = True
         st.rerun()
-
 
 # ==================== 메인 화면 (오른쪽 패널) ====================
 
