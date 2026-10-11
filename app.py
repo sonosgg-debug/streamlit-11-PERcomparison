@@ -17,6 +17,15 @@ except Exception:
         sys.modules["pkg_resources"] = pkg_mock
 
 import streamlit as st
+
+# 1. 페이지 기본 설정
+# [가이드 05] Streamlit 명령 최우선 실행 보장 (StreamlitAPIException 및 무한 로딩 방어)
+st.set_page_config(
+    page_title="종목별 PER 변화 추이 비교",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
@@ -26,8 +35,12 @@ import datetime
 KST = datetime.timezone(datetime.timedelta(hours=9))
 
 import importlib
-import per_loader
-importlib.reload(per_loader)
+try:
+    import per_loader
+    importlib.reload(per_loader)
+except Exception as e:
+    st.error(f"모듈 로드 중 오류가 발생했습니다: {e}")
+    st.stop()
 
 STANDARD_CHART_THEME = {
     'paper_bgcolor': '#1E293B',    # Tailwind Slate-800 (외곽 카드 배경)
@@ -42,13 +55,6 @@ STANDARD_CHART_THEME = {
     'hover_bg': 'rgba(15, 23, 42, 0.9)',
     'hover_border': '#334155'
 }
-
-# 1. 페이지 기본 설정
-st.set_page_config(
-    page_title="종목별 PER 변화 추이 비교",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
 
 # 2. 커스텀 CSS 스타일링 (31 PerformanceChart 및 다크 테마 일관성 유지)
 st.markdown("""
